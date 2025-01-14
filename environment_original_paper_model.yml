@@ -1,0 +1,13 @@
+name: ascan2_orig
+channels:
+  - defaults
+dependencies:
+  - python=3.6
+  - numpy=1.16.0
+  - pip
+  - pip:
+      - tensorflow==1.2.1
+      - biopython==1.69
+      - h5py==2.6
+      - Keras==2.0.6
+      - scikit-learn>=0.20.0

@@ -1,0 +1,25 @@
+# AMP Scanner Version 2 Original Paper Image
+
+# Use the official TensorFlow 1.2.1 base image
+FROM tensorflow/tensorflow:1.2.1
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Create output dir
+RUN mkdir -p /app/output
+
+# Install git to clone the repository
+RUN apt-get update && apt-get install -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone the AMP Scanner v2 repository from GitHub
+RUN git clone https://github.com/dan-veltri/amp-scanner-v2.git /app
+
+# Install the required dependencies for the original model
+RUN pip install --upgrade pip && \
+    pip install numpy==1.16.0 keras==2.0.6 h5py==2.6 biopython==1.69 scikit-learn==0.20.0
+
+# Define the default command (update this as necessary)
+CMD ["python", "amp_scanner_v2_predict_tf1.py", "--help"]
