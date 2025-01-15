@@ -10,13 +10,4 @@ dependencies:
       - biopython==1.69
       - h5py==2.8.0
       - Keras==2.2.4
-      - scikit-learn>=0.20.10
-
-
-acc = (tp + tn) / (tn + fp + fn + tp + 0.0) * 100.0 if (tn + fp + fn + tp) > 0 else 0.0
-
-sens = tp / (tp + fn + 0.0) * 100.0 if (tp + fn) > 0 else 0.0
-
-spec = tn / (tn + fp + 0.0) * 100.0 if (tn + fp) > 0 else 0.0
-
-prec = tp / (tp + fp + 0.0) * 100.0 if (tp + fp) > 0 else 0.0
+      - scikit-learn>=0.20.1
