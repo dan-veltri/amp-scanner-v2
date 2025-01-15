@@ -69,7 +69,7 @@ conda activate ascan2_orig
 For the 2019, or newer, models install and activate with:
 
 ```bash
-conda env create -f environment_2019_and_newer_model.yml`
+conda env create -f environment_2019_and_newer_model.yml
 conda activate ascan2_tf1
 ```
 
