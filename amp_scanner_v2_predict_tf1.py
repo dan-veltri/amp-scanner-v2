@@ -13,9 +13,9 @@ For usage run: python amp_scanner_v2_predict_tf1.py -h
 Proteins in <query.fasta> must be 20 classic AAs or X (treated as a padding character).
 Keras and TensorFlow version of <model.h5> HDF5 model should be same as the current environment.
 
-Output:	Saves to the current working directory -
-		<query_basename>_AMP_Candidates.fasta - FASTA file of peptides predicted as AMPs
-		<query_basename>_Prediction_Summary.csv - CSV file of prediction results
+Output:	By default saves to the current working directory:
+		AMP_Candidates.fasta - FASTA file of peptides predicted as AMPs
+		AMP_Predictions.csv - CSV file of prediction results
 
 Prediction probabilities > 0.5 signify AMPs, <= 0.5 signify non-AMPs.
 
@@ -41,7 +41,7 @@ def check_and_encode_format(this_file, valid_aminos, max_len, min_len=10):
     """
         Checks basic format of FASTA file for valid sequence AA characters and length and encodes sequences.
         On Entry: this_file is input FASTA file path, valid_aminos is string of valid AA characters,
-        max_len and min_len is int of max and min length of sequences allowed, respectively.
+            max_len and min_len is int of max and min length of sequences allowed, respectively.
         On Exit: Will simply return if no errors found else print errors and system exit unsuccessful.
     """
     print("Encoding sequences...")
@@ -91,6 +91,12 @@ def check_and_encode_format(this_file, valid_aminos, max_len, min_len=10):
     return ids, seqs, sequence.pad_sequences(x, maxlen=max_len), warnings_found
 
 def predict_amps(x_test, model):
+    """
+        Return predictions for a given dataset using a compatible pre-trained Tensorflow model.
+        On Entry: x_test is a numpy array of dimensions compatible with the model.
+            model is a path to a pre-trained Keras model file in HDF5 format.
+        On Exit: returns a numpy array of predictions for the given input data.
+    """
     print("Making predictions...")
     try:
         loaded_model = load_model(model)
@@ -110,6 +116,13 @@ def predict_amps(x_test, model):
     return preds
 
 def save_output(ids, seqs, preds, thrsh=0.5, candidates_filename='AMP_Candidates.fasta', predictions_filename='Prediction_Summary.csv'):
+    """
+        Saves prediction summary CSV and candidate AMPs FASTA files.
+        On Entry: ids array of sequence definitions, seqs is array of sequences, preds is numpy array of prediction probs.
+            thrsh is a cutoff threshold between 0-1 where prediction > thrsh is considered an AMP, candidates_filename
+            is path to output FASTA file, predictions_filename is path to output CSV file.
+        On Exit: candidates_filename and predictions_filename are saved to the provided paths.
+    """
     print("Saving output...")
     fout_candidates, fout_predictions = None, None
     try:
@@ -160,7 +173,7 @@ def main():
                         required=False,
                         type=str,
                         default="AMP_Candidates.fasta",
-                        help="OPTIONAL: Path and filename for output AMP candidates FASTA file (default: <query_fasta_basename>_AMP_Candidates.fasta)")
+                        help="OPTIONAL: Path and filename for output AMP candidates FASTA file (default: AMP_Candidates.fasta)")
 
     parser.add_argument("-p",
                         "-preds",
@@ -168,7 +181,7 @@ def main():
                         required=False,
                         type=str,
                         default="AMP_Predictions.csv",
-                        help="OPTIONAL: Path and filename for output AMP predictions CSV file (default: <query_fasta_basename>_AMP_Predictions.csv)")
+                        help="OPTIONAL: Path and filename for output AMP predictions CSV file (default: AMP_Predictions.csv)")
 
     parser.add_argument("-l",
                         "--max_length",
@@ -229,11 +242,7 @@ def main():
             else:
                 print(f"{ids[i]},Non-AMP,{pred[0]:.4f},{seqs[i]}")
     else:
-        basefile = os.path.basename(args.query_fasta)
-        basename = os.path.splitext(basefile)[0]
-        candidates_filename = os.path.join(os.getcwd(), f"{basename}_{args.candidate_amp_fasta_output}")
-        predictions_filename = os.path.join(os.getcwd(), f"{basename}_{args.predictions_csv_output}")
-        save_output(ids, seqs, preds, args.threshold_cutoff, candidates_filename, predictions_filename)
+        save_output(ids, seqs, preds, args.threshold_cutoff, args.candidate_amp_fasta_output, args.predictions_csv_output)
 
     if warnings_found:
         print(f"\nNOTE: A '*' was appended to IDs for sequences longer than the max length setting ({args.max_length} amino acids). These results may be unreliable!")
