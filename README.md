@@ -34,7 +34,7 @@ Quick Links:
  - numpy=1.16.0
  - h5py==2.8.0
  - biopython>=1.69
- - scikit-learn>=0.20.10
+ - scikit-learn>=0.20.1
 
 ### Protein Sequence Requirements:
 
