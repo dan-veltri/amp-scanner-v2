@@ -317,12 +317,27 @@ will run <em>very slow!</em>
 
 ## Running with Docker
 
-Separate Docker files are provided in the `docker` folder to build an image for the original paper and 2019+ model
-environments outlined above. You must have Docker installed on your system to use this, see: https://www.docker.com/.
+If you prefer using Docker, prebuilt images or Dockerfiles are available to build locally.
+You must have Docker installed on your system to use this, see: https://www.docker.com/.
+In the container, AMP Scanner V2 scripts, original datasets, and pretrained models are stored under `/app` which is set
+as the default working directory. We recommend mapping local input/output files to `/data`.
 
-### Build Images
+### Pull Images from Docker Hub
 
-From within the `docker` folder, run this to build the original paper environment:
+To pull an image for use with the original paper Tensorflow v1 model run:
+```bash
+docker pull dveltri/ascan2:orig
+```
+
+For an image for use with the 2019 or newer Tensorflow v1 server models run:
+```bash
+docker pull dveltri/ascan2:tf1
+```
+
+### Building Images Locally
+
+Separate Docker files are provided in the project `docker` folder to locally build an image for the original paper and/or
+2019+ model environments outlined above. From within the `docker` folder, run this to build the original paper environment:
 ```bash
 docker build -f Dockerfile.orig_paper_tf1 -t ascan2:orig .
 ```
@@ -332,28 +347,39 @@ Or, for the 2019+ newer model environment:
 docker build -f Dockerfile.newer_models_tf1 -t ascan2:tf1 .
 ```
 
-### Run Image Scripts
+### Examples of Running Scripts with a Docker Image 
 
-Run the AMP Scanner Version 2 Scripts like the following. These examples map to the present working directory `$(pwd)`
-but change to your desired path.
+Examples for how you can run the AMP Scanner Version 2 scripts are shown below. Call the script arguments as outlined
+above. These examples map the present working directory `$(pwd)` (change to your desired path) on the local system to
+the directory `/data` in the container. 
 
-To predict using the provided example files:
+#### Predict Using Included FASTA and Model Files - Save Results in Current Working Directory
 ```bash
-docker run -v $(pwd):/app/ ascan2:orig python amp_scanner_v2_predict_tf1.py \
-  -fasta input.fasta \
-  -model /app/trained-models/OriginalPaper_081917_FULL_MODEL.h5 \
-  `
+docker run -v $(pwd):/data ascan2:orig python amp_scanner_v2_predict_tf1.py \
+  -fasta original-dataset/AMP.te.fa \
+  -model trained-models/OriginalPaper_081917_FULL_MODEL.h5 \
+  -candidates /data/AMP_Candidates.fasta \
+  -preds /data/AMP_Predictions.csv
 ```
 
-To train using provided example files and save to output folder:
+#### Make Predictions on File `my_query.fasta` Located in Present Working Directory - Save Results in Current Working Directory
 ```bash
-docker run -v $(pwd):/app/ ascan2:tf1 python amp_scanner_v2_train_tf1.py \
-  --amp_train_fasta /app/original-dataset/AMP.tr.fa \
-  --amp_validate_fasta /app/originial-dataset/AMP.eval.fa \
-  --amp_test_fasta /app/original-dataset/AMP.te.fa \
-  --decoy_train_fasta /app/original-dataset/DECOY.tr.fa \
-  --decoy_validate_fasta /app/original-dataset/DECOY.eval.fa \
-  --decoy_test_fasta /app/original-dataset/DECOY.te.fa \
-  --output_model_name /app/output/my_ascan2_model.h5
+docker run -v $(pwd):/data ascan2:tf1 python amp_scanner_v2_predict_tf1.py \
+  -fasta /data/my_query.fasta \
+  -model trained-models/020419_FULL_MODEL.h5 \
+  -candidates /data/My_Query_AMP_Candidates.fasta \
+  -preds /data/My_Query_AMP_Predictions.csv
+```
+
+#### Train Using Provided Example Files - Save Model in Current Working Directory
+```bash
+docker run -v $(pwd):/data ascan2:tf1 python amp_scanner_v2_train_tf1.py \
+  --amp_train_fasta original-dataset/AMP.tr.fa \
+  --amp_validate_fasta originial-dataset/AMP.eval.fa \
+  --amp_test_fasta original-dataset/AMP.te.fa \
+  --decoy_train_fasta original-dataset/DECOY.tr.fa \
+  --decoy_validate_fasta original-dataset/DECOY.eval.fa \
+  --decoy_test_fasta original-dataset/DECOY.te.fa \
+  --output_model_name /data/my_ascan2_model.h5
 ```
 
