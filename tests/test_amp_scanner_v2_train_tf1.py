@@ -6,7 +6,7 @@ from distutils.version import LooseVersion # deprecated python >= 3.10
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import numpy as np
-from sklearn.metrics import confusion_matrix, roc_auc_score, matthews_corrcoef, classification_report
+from sklearn.metrics import confusion_matrix, roc_auc_score, matthews_corrcoef
 from Bio import SeqIO
 from amp_scanner_v2_train_tf1 import check_format, encode_sequences, predict_and_report, compile_model
 import tensorflow as tf
@@ -14,20 +14,28 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, LSTM
 from keras.layers.convolutional import Conv1D, MaxPooling1D
 from keras.layers.embeddings import Embedding
+from keras.preprocessing import sequence
 np.random.seed(123)
 
 class TestAScan2(unittest.TestCase):
 
     def setUp(self):
         self.loaded_model = None
-        self.tf1_model = "../trained-models/020419_FULL_MODEL.h5"
+
+        cwd = os.path.basename(os.getcwd())
+        if cwd is 'tests':
+            os.chdir("../")
+        if not os.path.exists('tests') and not os.path.exists('trained-models'):
+            self.fail("ERROR: Tests should be run from the 'amp-scanner-v2' parent directory!")
+
+        self.tf1_model = os.path.join('trained-models', '020419_FULL_MODEL.h5')
         if not os.path.exists(self.tf1_model):
             self.fail(f"2019+ TFv1 model not where it is expected: {self.tf1_model}")
-        self.orig_model = "../trained-models/OriginalPaper_081917_FULL_MODEL.h5"
+        self.orig_model = os.path.join('trained-models', 'OriginalPaper_081917_FULL_MODEL.h5')
         if not os.path.exists(self.tf1_model):
             self.fail(f"Original paper TFv1 model not where it is expected: {self.tf1_model}")
-        self.valid_fasta = "tests/sample_valid.fasta"
-        self.invalid_fasta = "tests/sample_invalid.fasta"
+        self.valid_fasta = os.path.join('tests','sample_valid.fasta')
+        self.invalid_fasta = os.path.join('tests','sample_invalid.fasta')
         self.fake_sequences = [
             ">Seq_OK\nLLGDFFRKAKEKIGKESKRIVQRIKDFLRNLVPRTES\n",
             ">Seq_OK_X\nLLGDFFRKAKEKIGXESKRIVQRIKDFLRNLVPRTES\n",
@@ -40,7 +48,7 @@ class TestAScan2(unittest.TestCase):
             fh.write("".join(self.fake_sequences[:2]))
         with open(self.invalid_fasta, "w") as fh:
             fh.write("".join(self.fake_sequences[2:]))
-        self.test_amps = "tests/test_amps.fasta"
+        self.test_amps = os.path.join('tests','test_amps.fasta')
         self.test_amp_seqs = [
             ">AP00695\nFLPILGKLLSGIL\n",
             ">AP00658\nFLPLVGKILSGLI\n",
@@ -48,7 +56,7 @@ class TestAScan2(unittest.TestCase):
         ]
         with open(self.test_amps, "w") as fh:
             fh.write("".join(self.test_amp_seqs))
-        self.test_decoys = "tests/test_decoys.fasta"
+        self.test_decoys = os.path.join('tests','test_decoys.fasta')
         self.test_decoy_seqs = [
             ">UniRef50_Q9BRA0\nNVILGSAQEFLKPSD\n",
             ">UniRef50_Q54JQ2\nPKENPFLPIDTTIKAPQDHSIHIPKEVYNNNGVKVYHSLDHRFNSPKARVNIRFELTSYGNNQSMVM\n",
@@ -72,8 +80,8 @@ class TestAScan2(unittest.TestCase):
             os.remove(self.test_decoys)
         if self.loaded_model:
             del self.loaded_model
-        if os.path.exists("test/model.h5"):
-            os.remove("test/model.h5")
+        if os.path.exists(os.path.join('tests','model.h5')):
+            os.remove(os.path.join('tests','model.h5'))
 
     def test_check_format_valid_file(self):
         try:
@@ -113,9 +121,11 @@ class TestAScan2(unittest.TestCase):
             self.test_amps, self.test_amps, self.test_amps,
             self.test_decoys, self.test_decoys, self.test_decoys
         )
-        test_model = compile_model(x_train, y_train, x_val, y_val, saved_model_name="test/model.h5", merge_train_and_val=False)
+        test_model = compile_model(x_train, y_train, x_val, y_val, saved_model_name=os.path.join('tests','model.h5'), merge_train_and_val=False)
         self.assertIsInstance(test_model, Sequential, "compile_model did not return a merged Keras Sequential model.")
-        self.assertTrue(os.path.exists("test/model.h5"), f"Model file was not created at 'test/model.h5'")
+        self.assertTrue(os.path.exists(os.path.join('tests','model.h5')), f"Model file was not created at {os.path.join('tests','model.h5')}")
+
+
 
     def test_predict_and_report(self):
         x_test = [[self.aa2int[aa] for aa in "FLPILGKLLSGIL"], [self.aa2int[aa] for aa in "NVILGSAQEFLKPSD"],
@@ -194,6 +204,7 @@ class TestAScan2(unittest.TestCase):
                     predict_and_report(x_test, y_test, self.loaded_model)
                 except KeyError:
                     print(f"\n\nWARNING: Environment (TF:{tf_version}) is configured to run the 2019+ TFv1 models, but will not work with the original paper version model (requires TF 1.2.1). This is expected.\n\n")
+
 
         elif LooseVersion(tf_version) == LooseVersion("1.2.1"):
             with warnings.catch_warnings(record=True):
