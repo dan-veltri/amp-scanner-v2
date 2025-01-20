@@ -81,15 +81,15 @@ conda deactivate
 
 ### Using PIP and Virtual Environments
 
-To use PIP (see: https://pypi.org/project/pip/) and Virtual Environments
+To use Python 3.6 with PIP (see: https://pypi.org/project/pip/) and Virtual Environments
 (see: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) you can use the
 appropriate "requirements.txt" file to install the needed libraries in a similar fashion:
 
 For the original paper model follow these steps:
 
-#### Create Virtual Environment
+#### Create Virtual Environment Using Python v3.6.x
 ```bash
-python -m venv ascan2_orig
+python3.6 -m venv ascan2_orig # point to python3.6 location for your system
 ```
 
 #### Activate Virtual Environment
@@ -101,11 +101,12 @@ ascan2_orig\Scripts\activate # On Windows Command Prompt
 
 #### Install Dependencies and Verify Installation
 ```bash
+pip install --upgrade pip
 pip install -r requirements_original_paper_model.txt
 pip freeze
 ```
 
-#### Deactivate when Finished
+#### Deactivate After Finished Running AMP Scanner Scripts
 ```bash
 deactivate
 ```
