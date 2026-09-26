@@ -52,7 +52,7 @@ the code to work, but these predictions may not be accurate and this is not reco
 
 These scripts require Python v3.6 and user the older Tensorflow v1.x - most system now have newer versions installed so
 we highly recommend using either a conda or virtual environment to install the packages needed to run everything.
-Note, that the package versions are slightly different depending on if you are using the pertained model from the
+Note, that the package versions are slightly different depending on if you are using the pre-tained model from the
 original paper or newer (2019+) pre-trained models.
 
 ### Using Conda/Miniconda
